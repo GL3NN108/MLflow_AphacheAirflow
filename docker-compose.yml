@@ -1,0 +1,65 @@
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.17.2
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow-data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+      AIRFLOW__WEBSERVER__SECRET_KEY: modelopssecretkey
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MODEL_NAME: iris-classifier
+      PYTHONPATH: /opt/airflow/src
+    user: "0:0"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - airflow-data:/opt/airflow
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow db migrate &&
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true &&
+      airflow webserver --port 8080 &
+      exec airflow scheduler"
+
+  app:
+    build: .
+    depends_on:
+      - mlflow
+      - airflow
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AIRFLOW_BASE_URL: http://airflow:8080
+      AIRFLOW_USERNAME: admin
+      AIRFLOW_PASSWORD: admin
+      AIRFLOW_DAG_ID: train_iris_model
+      MODEL_NAME: iris-classifier
+    ports:
+      - "8000:8000"
+
+volumes:
+  airflow-data:

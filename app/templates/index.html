@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>model-ops</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">model-ops</p>
+      <h1>Train, track, and score a small model</h1>
+    </div>
+    <div class="links">
+      <a id="mlflow-link" href="http://localhost:5000" target="_blank" rel="noreferrer">MLflow UI</a>
+      <a id="airflow-link" href="http://localhost:8080" target="_blank" rel="noreferrer">Airflow UI</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="status-row">
+      <article class="card">
+        <h2>MLflow</h2>
+        <p id="mlflow-status" class="muted">checking…</p>
+      </article>
+      <article class="card">
+        <h2>Airflow</h2>
+        <p id="airflow-status" class="muted">checking…</p>
+      </article>
+      <article class="card">
+        <h2>Registered model</h2>
+        <p id="model-name" class="muted">—</p>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Training</h2>
+        <p class="muted">Kick off the Airflow DAG, or train in this app and log straight to MLflow.</p>
+        <div class="actions">
+          <button id="train-airflow">Run Airflow DAG</button>
+          <button id="train-direct" class="ghost">Quick train</button>
+        </div>
+        <p id="train-message" class="message"></p>
+        <h3>Recent DAG runs</h3>
+        <div id="dag-runs" class="table-wrap muted">No DAG runs yet.</div>
+      </article>
+
+      <article class="card">
+        <h2>Predict</h2>
+        <form id="predict-form">
+          <label>Sepal length <input name="sepal_length" type="number" step="0.1" value="5.1" required /></label>
+          <label>Sepal width <input name="sepal_width" type="number" step="0.1" value="3.5" required /></label>
+          <label>Petal length <input name="petal_length" type="number" step="0.1" value="1.4" required /></label>
+          <label>Petal width <input name="petal_width" type="number" step="0.1" value="0.2" required /></label>
+          <button type="submit">Score sample</button>
+        </form>
+        <p id="predict-result" class="message"></p>
+      </article>
+    </section>
+
+    <article class="card">
+      <h2>MLflow runs</h2>
+      <div id="runs" class="table-wrap muted">No runs yet.</div>
+    </article>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
